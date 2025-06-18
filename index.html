@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>リアルタイム字幕アプリ</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+    #transcript {
+      font-size: 24px;
+      background: #fff;
+      padding: 16px;
+      height: 300px;
+      overflow-y: auto;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🧏‍♀️ 会話文字化（リアルタイム）</h1>
+  <div id="transcript">音声を文字に変換します...</div>
+  <button id="startBtn">▶ 開始</button>
+  <button id="stopBtn" disabled>■ 停止</button>
+
+  <script>
+    const transcriptDiv = document.getElementById("transcript");
+    const startBtn = document.getElementById("startBtn");
+    const stopBtn = document.getElementById("stopBtn");
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'ja-JP';
+    recognition.interimResults = true;
+    recognition.continuous = true;
+
+    let finalTranscript = "";
+
+    recognition.onresult = (event) => {
+      let interim = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const text = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += text + "\n";
+        } else {
+          interim += text;
+        }
+      }
+      transcriptDiv.textContent = finalTranscript + interim;
+    };
+
+    recognition.onerror = (event) => {
+      transcriptDiv.textContent += "\n[エラー]: " + event.error;
+    };
+
+    startBtn.onclick = () => {
+      recognition.start();
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+      transcriptDiv.textContent += "\n▶ 認識開始...\n";
+    };
+
+    stopBtn.onclick = () => {
+      recognition.stop();
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+      transcriptDiv.textContent += "\n■ 停止しました\n";
+    };
+  </script>
+</body>
+</html>
